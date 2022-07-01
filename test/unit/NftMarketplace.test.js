@@ -154,4 +154,26 @@ const { developmentChains } = require("../../helper-hardhat-config")
           assert.equal(boughtListing, "0")
         })
       })
+      describe("Proceeds", () => {
+        beforeEach(async () => {
+          await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
+
+          const playerConnectedNftMarketplace = nftMarketplace.connect(player)
+
+          await playerConnectedNftMarketplace.buyItem(basicNft.address, TOKEN_ID, {
+            value: PRICE,
+          })
+        })
+        it("withdraws its proceeds", async () => {
+          await nftMarketplace.withdrawProceeds()
+          const endingProceeds = await nftMarketplace.getProceeds(deployer)
+          assert.equal(endingProceeds.toString(), "0")
+        })
+        it("Reverts if no proceeds available", async () => {
+          await nftMarketplace.withdrawProceeds()
+          const error = `NftMarketplace__NoProceeds()`
+
+          await expect(nftMarketplace.withdrawProceeds()).to.be.revertedWith(error)
+        })
+      })
     })
